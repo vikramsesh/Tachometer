@@ -113,7 +113,8 @@ class CSVFile
 
     void writeHeaders()
     {
-      file.println(String(F("Sample#,Time(sec.),RPS,Motor RPM,Max. Motor RPM,Gear Ratio,Blade RPM,Max. Blade RPM"))); //Headers
+//      file.println(String(F("Sample#,Time(sec.),RPS,Motor RPM,Max. Motor RPM,Gear Ratio,Blade RPM,Max. Blade RPM"))); //Headers
+      file.println(String(F("Sample#,Motor RPM,Gear Ratio,Geared RPM"))); //Headers
     }
 
     void _update_file_number()
@@ -285,7 +286,7 @@ void sensor_detect() {
 
       currentTime = micros();   // Get the arduino time in microseconds
       diffTime = currentTime - prevTime;  // calculate the time diff from the last meet-up
-      rps = 1000000 / diffTime; // calculate how many rev per second, good to know
+//      rps = 1000000 / diffTime; // calculate how many rev per second, good to know
       rpm = 60000000 / diffTime; // calculate how many rev per minute
       blade_rpm = rpm / gear_ratio;
       unsigned long currentMillis = millis();
@@ -293,9 +294,9 @@ void sensor_detect() {
       // print to serial at every interval - defined at the variables declaration
       if (currentMillis - prevMillis > interval) { // see if now already an interval long
 
-        timer = millis();
-        timer = timer / (1000);
-        dtostrf(timer, 4, 3, x);
+//        timer = millis();
+//        timer = timer / (1000);
+//        dtostrf(timer, 4, 3, x);
 
         if (rpm > maxrpm) {
           maxrpm = rpm;
@@ -316,26 +317,25 @@ void sensor_detect() {
 
         dataString += cnt;
         dataString += ',';
-        dataString += x;
-        dataString += ',';
-        dataString += rps;
-        dataString += ',';
+//        dataString += x;
+//        dataString += ',';
+//        dataString += rps;
+//        dataString += ',';
         dataString += rpm;
         dataString += ',';
-        dataString += maxrpm;
-        dataString += ',';
+//        dataString += maxrpm;
+//        dataString += ',';
         dataString += "(" + String(gear_ratio) + ":1)";
         dataString += ',';
         dataString += blade_rpm;
-        dataString += ',';
-        dataString += blade_max_rpm;
+//        dataString += ',';
+//        dataString += blade_max_rpm;
 
         Serial.print("Sample: "); Serial.print(cnt); Serial.print(" Time: "); Serial.print(x);
         Serial.print(" RPS: "); Serial.print(rps);  Serial.print(" RPM: "); Serial.print(rpm);
         Serial.print(" Gear Ratio: "); Serial.print(String(gear_ratio) + ":1");
-        Serial.print(" Max RPM: "); Serial.print(maxrpm); Serial.print("Blade RPM: "); Serial.print("blade_rpm");
-        Serial.print(" Blade Max: "); Serial.println(blade_max_rpm);
-
+        Serial.print("Blade RPM: "); Serial.print("blade_rpm");
+        
         csv.writeToCSV(dataString);
         csv.closeFile();
         dataString = "";
