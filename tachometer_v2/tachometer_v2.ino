@@ -4,10 +4,10 @@
 
    Description:
    Using an IR sensor to detect pulses when a reflective tape is detected.
-   By using these pulses rps and rpm are calculated.
+   By using these pulses, RPM is calculated.
+   Logs RPM data and prints it on the serial monitor
+   Max. RPM and Blade Max. RPM is displayed on the LCD screen
 
-   v2 edits:
-   - Removing Sensor information for faster processing
 */
 
 #define LCDRED 23
@@ -52,7 +52,7 @@ long interval = 200;
 long currentTime;
 long prevTime = 1;
 long diffTime;
-int cnt = 0;
+//int cnt = 0;
 
 String dataString = "";
 //String sensor = "Base";
@@ -114,7 +114,7 @@ class CSVFile
     void writeHeaders()
     {
 //      file.println(String(F("Sample#,Time(sec.),RPS,Motor RPM,Max. Motor RPM,Gear Ratio,Blade RPM,Max. Blade RPM"))); //Headers
-      file.println(String(F("Sample#,Motor RPM,Gear Ratio,Geared RPM"))); //Headers
+      file.println(String(F("Time (sec.),Motor RPM,Gear Ratio,Geared RPM"))); //Headers
     }
 
     void _update_file_number()
@@ -279,24 +279,18 @@ void sensor_detect() {
     state1 = LOW;
   digitalWrite(13, state1);  // as iR light is invisible for us, the led on pin 13
   // indicate the state of the circuit.
-
   if (state2 != state1) {  //counts when the state change, thats from (dark to light) or
     //from (light to dark), remember that IR light is invisible to us.
     if (state2 > state1) {
 
       currentTime = micros();   // Get the arduino time in microseconds
       diffTime = currentTime - prevTime;  // calculate the time diff from the last meet-up
-//      rps = 1000000 / diffTime; // calculate how many rev per second, good to know
       rpm = 60000000 / diffTime; // calculate how many rev per minute
       blade_rpm = rpm / gear_ratio;
-      unsigned long currentMillis = millis();
+      float currentMillis = millis();
 
       // print to serial at every interval - defined at the variables declaration
       if (currentMillis - prevMillis > interval) { // see if now already an interval long
-
-//        timer = millis();
-//        timer = timer / (1000);
-//        dtostrf(timer, 4, 3, x);
 
         if (rpm > maxrpm) {
           maxrpm = rpm;
@@ -311,30 +305,25 @@ void sensor_detect() {
           lcd.print(blade_max_rpm);
         }
 
-        cnt += 1 ;
+//        cnt += 1 ;
         csv.openFile();
         prevMillis = currentMillis;
-
-        dataString += cnt;
+        
+        dataString += currentMillis/1000;
         dataString += ',';
-//        dataString += x;
-//        dataString += ',';
-//        dataString += rps;
+//        dataString += cnt;
 //        dataString += ',';
         dataString += rpm;
         dataString += ',';
-//        dataString += maxrpm;
-//        dataString += ',';
         dataString += "(" + String(gear_ratio) + ":1)";
         dataString += ',';
         dataString += blade_rpm;
-//        dataString += ',';
-//        dataString += blade_max_rpm;
 
-        Serial.print("Sample: "); Serial.print(cnt); Serial.print(" Time: "); Serial.print(x);
-        Serial.print(" RPS: "); Serial.print(rps);  Serial.print(" RPM: "); Serial.print(rpm);
-        Serial.print(" Gear Ratio: "); Serial.print(String(gear_ratio) + ":1");
-        Serial.print("Blade RPM: "); Serial.print("blade_rpm");
+        Serial.print("Time(sec.): "); Serial.println(currentMillis/1000);
+        Serial.print("RPM: "); Serial.println(rpm);
+        Serial.print("Gear Ratio: "); Serial.println(String(gear_ratio) + ":1");
+        Serial.print("Blade RPM: "); Serial.println(blade_rpm);
+        Serial.println("");
         
         csv.writeToCSV(dataString);
         csv.closeFile();
